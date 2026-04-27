@@ -1,3 +1,7 @@
+/* -------------------------------
+   FEEDBACK ITEM BANK (10 ITEMS)
+--------------------------------*/
+
 const feedbackItems = [
   {
     text: "You need to be more professional. This has been an issue lately.",
@@ -33,13 +37,17 @@ const feedbackItems = [
   },
   {
     text: "You didn’t prepare enough for today’s meeting.",
-    issuesPresent: ["Lacks examples", "Could trigger defensiveness"]
+    issuesPresent: ["Lacks examples", "Likely defensiveness"]
   },
   {
     text: "Good presentation, but be more confident.",
     issuesPresent: ["Personality-focused", "Vague language", "Lacks guidance"]
   }
 ];
+
+/* -------------------------------
+   ALL POSSIBLE ISSUE LABELS
+--------------------------------*/
 
 const allLabels = [
   "Vague language",
@@ -54,8 +62,18 @@ const allLabels = [
   "Lacks context"
 ];
 
+/* -------------------------------
+   STATE VARIABLES
+--------------------------------*/
+
 let currentIndex = 0;
 let draggedItem = null;
+let cumulativeCorrect = 0;
+let cumulativeTotal = feedbackItems.length * allLabels.length;
+
+/* -------------------------------
+   DOM REFERENCES
+--------------------------------*/
 
 const feedbackText = document.getElementById("feedbackText");
 const dragItemsContainer = document.getElementById("dragItems");
@@ -65,15 +83,22 @@ const counter = document.getElementById("counter");
 const checkBtn = document.getElementById("checkAnswers");
 const nextBtn = document.getElementById("nextItem");
 
+/* -------------------------------
+   LOAD CURRENT ITEM
+--------------------------------*/
+
 function loadItem() {
   feedbackBox.classList.add("hidden");
+  checkBtn.disabled = false;
   nextBtn.disabled = true;
 
   counter.textContent = `Item ${currentIndex + 1} of ${feedbackItems.length}`;
   feedbackText.textContent = `“${feedbackItems[currentIndex].text}”`;
 
   dragItemsContainer.innerHTML = "";
-  dropZones.forEach(zone => zone.querySelectorAll(".drag-item").forEach(i => i.remove()));
+  dropZones.forEach(zone =>
+    zone.querySelectorAll(".drag-item").forEach(i => i.remove())
+  );
 
   allLabels.forEach(label => {
     const div = document.createElement("div");
@@ -83,15 +108,17 @@ function loadItem() {
     div.dataset.correct = feedbackItems[currentIndex].issuesPresent.includes(label)
       ? "present"
       : "not-present";
-    addDragEvents(div);
+
+    div.addEventListener("dragstart", () => draggedItem = div);
+    div.addEventListener("dragend", () => draggedItem = null);
+
     dragItemsContainer.appendChild(div);
   });
 }
 
-function addDragEvents(item) {
-  item.addEventListener("dragstart", () => draggedItem = item);
-  item.addEventListener("dragend", () => draggedItem = null);
-}
+/* -------------------------------
+   DROP ZONE BEHAVIOR
+--------------------------------*/
 
 dropZones.forEach(zone => {
   zone.addEventListener("dragover", e => e.preventDefault());
@@ -100,9 +127,12 @@ dropZones.forEach(zone => {
   });
 });
 
+/* -------------------------------
+   CHECK ANSWERS
+--------------------------------*/
+
 checkBtn.addEventListener("click", () => {
-  let correct = 0;
-  const total = allLabels.length;
+  let correctThisItem = 0;
 
   document.querySelectorAll(".drag-item").forEach(item => {
     item.classList.remove("correct", "incorrect");
@@ -114,35 +144,67 @@ checkBtn.addEventListener("click", () => {
       (placed === "not-present" && actual === "not-present")
     ) {
       item.classList.add("correct");
-      correct++;
+      correctThisItem++;
     } else {
       item.classList.add("incorrect");
     }
   });
 
+  cumulativeCorrect += correctThisItem;
+
   feedbackBox.classList.remove("hidden");
   feedbackBox.innerHTML = `
-    <strong>${correct} of ${total} correctly sorted.</strong>
+    <strong>${correctThisItem} of ${allLabels.length} correct for this item.</strong>
     <p>
-      Notice the patterns: vague wording, judgments, and missing guidance
-      consistently reduce the usefulness of feedback.
+      Cumulative score: <strong>${cumulativeCorrect}</strong>
+      out of <strong>${cumulativeTotal}</strong>
+    </p>
+    <p>
+      Notice recurring issues: vague wording, judgment, and missing guidance
+      consistently weaken feedback.
     </p>
   `;
+
+  checkBtn.disabled = true;
   nextBtn.disabled = false;
 });
 
+/* -------------------------------
+   NEXT ITEM / FINAL SUMMARY
+--------------------------------*/
+
 nextBtn.addEventListener("click", () => {
   currentIndex++;
+
   if (currentIndex < feedbackItems.length) {
     loadItem();
   } else {
+    const percentage = Math.round(
+      (cumulativeCorrect / cumulativeTotal) * 100
+    );
+
     feedbackText.textContent = "✅ You’ve completed all critique items.";
     dragItemsContainer.innerHTML = "";
-    dropZones.forEach(zone => zone.innerHTML = "<h2>Done</h2>");
+    dropZones.forEach(zone => zone.innerHTML = "<h2>Complete</h2>");
     counter.textContent = "";
+
+    feedbackBox.classList.remove("hidden");
+    feedbackBox.innerHTML = `
+      <h3>Final Score</h3>
+      <p><strong>${cumulativeCorrect}</strong> out of <strong>${cumulativeTotal}</strong> correct</p>
+      <p>Overall accuracy: <strong>${percentage}%</strong></p>
+      <p>
+        Strong feedback judgment comes from recognizing patterns—not memorizing phrases.
+      </p>
+    `;
+
     checkBtn.disabled = true;
     nextBtn.disabled = true;
   }
 });
+
+/* -------------------------------
+   INITIAL LOAD
+--------------------------------*/
 
 loadItem();
