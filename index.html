@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Feedback Critique – Drag and Drop</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <main class="container">
+    <h1>Evaluate the Feedback</h1>
+    <p class="instructions">
+      Read the feedback below. Drag each label into the box where it belongs.
+    </p>
+
+    <section class="feedback-text">
+      “You need to be more professional. This has been an issue lately.”
+    </section>
+
+    <section class="drag-items">
+      <div class="drag-item" draggable="true" data-correct="present">Vague language</div>
+      <div class="drag-item" draggable="true" data-correct="present">Judgmental wording</div>
+      <div class="drag-item" draggable="true" data-correct="present">Lacks examples</div>
+      <div class="drag-item" draggable="true" data-correct="not-present">Actionable guidance</div>
+      <div class="drag-item" draggable="true" data-correct="not-present">Observable behavior</div>
+    </section>
+
+    <section class="drop-zones">
+      <div class="drop-zone" data-zone="present">
+        <h2>Issues Present</h2>
+      </div>
+
+      <div class="drop-zone" data-zone="not-present">
+        <h2>Issues NOT Present</h2>
+      </div>
+    </section>
+
+    <button id="checkAnswers">Check Answers</button>
+
+    <section id="feedback" class="feedback hidden"></section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+``
